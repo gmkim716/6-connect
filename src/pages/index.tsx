@@ -1,101 +1,29 @@
-import { useEffect, useState } from "react";
-import { io, Socket } from "socket.io-client";
-
-interface Message {
-  id: string;
-  text: string;
-  sender: string;
-}
+import { useRouter } from "next/router";
 
 export default function Home() {
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [messageInput, setMessageInput] = useState("");
-  const [username, setUsername] = useState("");
-
-  useEffect(() => {
-    const name = prompt("이름을 입력해주세요:") || "익명";
-    setUsername(name);
-
-    const socketInitializer = async () => {
-      await fetch("/api/socket");
-      const socket = io({
-        path: "/api/socket",
-      });
-
-      socket.on("connect", () => {
-        console.log("Connected to socket server");
-      });
-
-      socket.on("message", (message: Message) => {
-        setMessages((prev) => [...prev, message]);
-      });
-
-      setSocket(socket);
-    };
-
-    socketInitializer();
-
-    return () => {
-      if (socket) {
-        socket.disconnect();
-      }
-    };
-  }, []);
-
-  const sendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (messageInput.trim() && socket) {
-      const message: Message = {
-        id: Date.now().toString(),
-        text: messageInput,
-        sender: username,
-      };
-      socket.emit("message", message);
-      setMessageInput("");
-    }
-  };
+  const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-4">
-        <h1 className="text-2xl font-bold mb-4">실시간 채팅</h1>
-        <div className="h-96 overflow-y-auto mb-4 border rounded p-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`mb-2 ${
-                message.sender === username ? "text-right" : "text-left"
-              }`}
-            >
-              <span className="text-sm text-gray-500">{message.sender}</span>
-              <div
-                className={`inline-block p-2 rounded-lg ${
-                  message.sender === username
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200"
-                }`}
-              >
-                {message.text}
-              </div>
-            </div>
-          ))}
-        </div>
-        <form onSubmit={sendMessage} className="flex gap-2">
-          <input
-            type="text"
-            value={messageInput}
-            onChange={(e) => setMessageInput(e.target.value)}
-            className="flex-1 border rounded p-2"
-            placeholder="메시지를 입력하세요..."
-          />
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
+        <h1 className="text-3xl font-bold mb-6">실시간 채팅 앱</h1>
+        <p className="text-gray-600 mb-8">
+          Socket.IO를 사용한 실시간 채팅 애플리케이션입니다.
+        </p>
+        <div className="space-y-4">
           <button
-            type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            onClick={() => router.push("/chat")}
+            className="w-full bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
           >
-            전송
+            채팅 시작하기
           </button>
-        </form>
+          <button
+            onClick={() => router.push("/bithumb")}
+            className="w-full bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors"
+          >
+            Bithumb 시세 보기
+          </button>
+        </div>
       </div>
     </div>
   );
